@@ -1,7 +1,10 @@
 from rest_framework import generics, viewsets,filters
-from .models import Blog,Comment
-from .serializer import BlogSerializer, CommentSerializer
+from .models import Blog, Comment, User
+from .serializer import BlogSerializer, CommentSerializer,UserSerializer
 
+class ReigsterUser(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 class BlogViewSet(viewsets.ModelViewSet):
     queryset = Blog.objects.filter(published=True)
