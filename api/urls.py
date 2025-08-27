@@ -3,6 +3,7 @@ from rest_framework import routers
 from .views import BlogViewSet,CommentListCreatedView,ReigsterUser
 from rest_framework.authtoken.views import obtain_auth_token
 
+
 router = routers.DefaultRouter()
 router.register('blog', BlogViewSet)
 
