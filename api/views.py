@@ -1,12 +1,13 @@
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets,filters
 from .models import blog,comment
 from .serializer import blogSerializer, commentSerializer
 
 
 class blogViewSet(viewsets.ModelViewSet):
-    queryset = blog.objects.all()
+    queryset = blog.objects.filter(published=True)
     serializer_class = blogSerializer
-
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('category',)
 
 class commentListCreatedView(generics.ListCreateAPIView):
     queryset = comment.objects.all()
