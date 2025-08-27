@@ -1,8 +1,12 @@
-from django.urls import path
-from .views import blogListCreatedView,blogviewDetail,commentListCreatedView
+from django.urls import path, include
+from rest_framework import routers
+
+from .views import blogViewSet,commentListCreatedView
+
+router = routers.DefaultRouter()
+router.register('blog', blogViewSet)
 
 urlpatterns = [
-    path('blog/', blogListCreatedView.as_view()),
-    path('blog/<int:pk>/', blogviewDetail.as_view()),
+    path('blog/', include(router.urls)),
     path("blogs/<int:blog_id>/comments/", commentListCreatedView.as_view()),
 ]
