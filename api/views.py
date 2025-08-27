@@ -1,5 +1,5 @@
 from rest_framework import generics, viewsets,filters ,status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from .models import Blog, Comment, User
@@ -9,6 +9,7 @@ from .serializer import BlogSerializer, CommentSerializer,UserSerializer
 class ReigsterUser(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = (AllowAny,)
 
 class BlogViewSet(viewsets.ModelViewSet):
     queryset = Blog.objects.filter(published=True)
