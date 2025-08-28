@@ -7,17 +7,17 @@ from rest_framework.authtoken.models import Token
 
 from .models import Blog, Comment
 from .serializer import BlogSerializer, CommentSerializer, UserSerializer
-from .permissions import IsAuthorOrReadOnly   # custom permission
+from .permissions import IsAuthorOrReadOnly
 
 
 class RegisterUser(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]  # register open
+    permission_classes = [permissions.AllowAny]
 
 
 class LoginCreated(APIView):
-    permission_classes = [permissions.AllowAny]  # login open
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         username = request.data.get('username')
@@ -33,7 +33,7 @@ class LoginCreated(APIView):
 class BlogViewSet(viewsets.ModelViewSet):
     queryset = Blog.objects.filter(published=True)
     serializer_class = BlogSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]  # 🔑
+    permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('category',)
     http_method_names = ('get', 'post', 'patch', 'delete')
