@@ -1,17 +1,13 @@
 from django.urls import path, include
-from rest_framework import routers
-from .views import BlogViewSet,CommentListCreatedView,ReigsterUser
-from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.routers import DefaultRouter
+from .views import BlogViewSet, CommentListCreatedView, RegisterUser, LoginCreated
 
-
-router = routers.DefaultRouter()
-router.register('blog', BlogViewSet)
+router = DefaultRouter()
+router.register(r'blogs', BlogViewSet)
 
 urlpatterns = [
-
-    path('Register/', ReigsterUser.as_view()),
-    path('login/', obtain_auth_token,),
-    path('blog/', include(router.urls)),
-    path("blogs/<blog_id>/comments/", CommentListCreatedView.as_view()),
-
+    path('register/', RegisterUser.as_view(), name='register'),
+    path('login/', LoginCreated.as_view(), name='login'),
+    path('blogs/<int:blog_id>/comments/', CommentListCreatedView.as_view(), name='comments'),
+    path('', include(router.urls)),
 ]

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Blog(models.Model):
+    title = models.CharField(max_length=100, default="Untitled")   # 🔑 default added
     id = models.AutoField(primary_key=True)
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE,related_name='blogs')

@@ -1,34 +1,48 @@
-from rest_framework import generics, viewsets,filters ,status
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from rest_framework import generics, viewsets, filters, permissions, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
 
-from .models import Blog, Comment, User
-from .serializer import BlogSerializer, CommentSerializer,UserSerializer
+from .models import Blog, Comment
+from .serializer import BlogSerializer, CommentSerializer, UserSerializer
+from .permissions import IsAuthorOrReadOnly   # custom permission
 
 
-class ReigsterUser(generics.CreateAPIView):
+class RegisterUser(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = [permissions.AllowAny]  # register open
+
+
+class LoginCreated(APIView):
+    permission_classes = [permissions.AllowAny]  # login open
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        user = authenticate(username=username, password=password)
+        if user:
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key}, status=status.HTTP_200_OK)
+        return Response({'error': 'Invalid username or password'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class BlogViewSet(viewsets.ModelViewSet):
     queryset = Blog.objects.filter(published=True)
     serializer_class = BlogSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]  # 🔑
     filter_backends = (filters.SearchFilter,)
     search_fields = ('category',)
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
-    def create(self, request, *args, **kwargs):
-        user = request.user
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(author=user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class CommentListCreatedView(generics.ListCreateAPIView):
-    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
     def get_queryset(self):
@@ -38,4 +52,3 @@ class CommentListCreatedView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         blog_id = self.kwargs['blog_id']
         serializer.save(blog_id=blog_id)
-
