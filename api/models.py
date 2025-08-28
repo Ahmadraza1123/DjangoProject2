@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Blog(models.Model):
     title = models.CharField(max_length=100, default="Untitled")
     id = models.AutoField(primary_key=True)
     content = models.TextField()
-    author = models.ForeignKey(User, on_delete=models.CASCADE,related_name='blogs')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="blogs")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     category = models.CharField(max_length=30)

@@ -4,7 +4,7 @@ from rest_framework import generics, viewsets, filters, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
-
+from rest_framework.decorators import action
 from .models import Blog, Comment
 from .serializer import BlogSerializer, CommentSerializer, UserSerializer
 from .permissions import IsAuthorOrReadOnly
@@ -15,14 +15,12 @@ class RegisterUser(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
-
 class LoginCreated(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-
         user = authenticate(username=username, password=password)
         if user:
             token, _ = Token.objects.get_or_create(user=user)
@@ -36,10 +34,18 @@ class BlogViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('category',)
-    http_method_names = ('get', 'post', 'patch', 'delete')
+
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+    @action(detail=False, methods=['get'])
+    def myblogs(self, request):
+        blogs = Blog.objects.filter(author=request.user)
+        serializer = self.get_serializer(blogs, many=True)
+        return Response(serializer.data)
+
 
 
 class CommentListCreatedView(generics.ListCreateAPIView):

@@ -31,9 +31,11 @@ class BlogSerializer(serializers.ModelSerializer):
         comments = CommentSerializer(many=True, read_only=True)
         author = serializers.ReadOnlyField(source='author.username')
 
+
         class Meta:
            model = Blog
            fields = "__all__"
+           read_only_fields = ('author', 'created_at', 'updated_at')
 
 
 
