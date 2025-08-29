@@ -41,10 +41,15 @@ class BlogViewSet(viewsets.ModelViewSet):
 
 
     @action(detail=False, methods=['get'])
-    def myblogs(self, request):
+    def my_blogs(self, request):
         blogs = Blog.objects.filter(author=request.user)
         serializer = self.get_serializer(blogs, many=True)
         return Response(serializer.data)
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return Blog.objects.filter(published=True)
+        return Blog.objects.all()
 
 
 

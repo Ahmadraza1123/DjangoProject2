@@ -22,9 +22,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    comment_user = UserSerializer(read_only=True)
     class Meta:
         model = Comment
-        fields = ['id', 'comment_name', 'content', 'created_at']
+        fields = ['id', 'comment_user', 'content', 'created_at']
+        read_only_fields = ['comment_user']
+
+    def create(self, validated_data):
+        validated_data["comment_user"] = self.context["request"].user
+        return super(CommentSerializer, self).create(validated_data)
 
 
 class BlogSerializer(serializers.ModelSerializer):

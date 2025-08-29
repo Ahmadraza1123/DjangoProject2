@@ -6,7 +6,7 @@ router = DefaultRouter()
 router.register(r'blogs', BlogViewSet)
 
 urlpatterns = [
-    path('register/', RegisterUser.as_view(), name='register'),
+    path('Register/', RegisterUser.as_view(), name='Register'),
     path('login/', LoginCreated.as_view(), name='login'),
     path('blogs/<int:blog_id>/comments/', CommentListCreatedView.as_view(), name='comments'),
     path('', include(router.urls)),
