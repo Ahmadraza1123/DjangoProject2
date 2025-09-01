@@ -22,3 +22,24 @@ class Comment(models.Model):
 
 
 
+class BlogReaction(models.Model):
+    blog = models.ForeignKey(Blog, related_name= "reactions" ,on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    like = models.BooleanField(default=False)
+
+
+    class Meta:
+        unique_together = ('blog', 'user')
+
+
+class CommentReaction(models.Model):
+    comment = models.ForeignKey(Comment, related_name='reaction_comments', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    like = models.BooleanField()
+
+    class Meta:
+        unique_together = ('comment', 'user')
+
+
+
+

@@ -3,10 +3,12 @@ from django.contrib.auth.models import User
 from rest_framework import generics, viewsets, filters, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+from .models import  BlogReaction, CommentReaction
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from .models import Blog, Comment
-from .serializer import BlogSerializer, CommentSerializer, UserSerializer
+from .serializer import BlogSerializer, CommentSerializer, UserSerializer, BlogReactionSerializer,CommentReactionSerializer
 from .permissions import IsAuthorOrReadOnly
 
 
@@ -63,3 +65,31 @@ class CommentListCreatedView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         blog_id = self.kwargs['blog_id']
         serializer.save(blog_id=blog_id)
+
+
+
+class BlogReactionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, blog_id):
+        blog = get_object_or_404(Blog, id=blog_id)
+        is_like = request.data.get("is_like", True)
+        reaction, _ = BlogReaction.objects.update_or_create(
+            blog=blog, user=request.user,
+            defaults={"is_like": is_like}
+        )
+        serializer = BlogReactionSerializer(reaction)
+        return Response(serializer.data)
+
+class CommentReactionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+        is_like = request.data.get("is_like", True)
+        reaction, _ = CommentReaction.objects.update_or_create(
+            comment=comment, user=request.user,
+            defaults={"is_like": is_like}
+        )
+        serializer = CommentReactionSerializer(reaction)
+        return Response(serializer.data)

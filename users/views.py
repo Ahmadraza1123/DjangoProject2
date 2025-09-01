@@ -5,12 +5,17 @@ from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 
 from .serializers import RegisterSerializer, UserProfileSerializer
+from .models import UserProfile
+
+
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = (permissions.AllowAny,)
 
-class LoginView(generics.CreateAPIView):
+
+
+class LoginView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
@@ -19,8 +24,15 @@ class LoginView(generics.CreateAPIView):
         user = authenticate(request, username=username, password=password)
         if not user:
             return Response({'message': 'Invalid username or password.'}, status=401)
+
         token, created = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})
+
+
+
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, )
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_object(self):
+        return UserProfile.objects.get(user=self.request.user)

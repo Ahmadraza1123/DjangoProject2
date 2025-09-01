@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Blog, Comment
+from .models import Blog, Comment,BlogReaction,CommentReaction
 from rest_framework.authtoken.models import Token
 
 
@@ -42,6 +42,20 @@ class BlogSerializer(serializers.ModelSerializer):
            model = Blog
            fields = "__all__"
            read_only_fields = ('author', 'created_at', 'updated_at')
+
+class BlogReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogReaction
+        fields = '__all__'
+
+
+class CommentReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentReaction
+        fields = '__all__'
+
+
+
 
 
 
