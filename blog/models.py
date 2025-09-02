@@ -1,10 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
 class Blog(models.Model):
     title = models.CharField(max_length=100, default="Untitled")
-    id = models.AutoField(primary_key=True)
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="blogs")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -12,6 +10,13 @@ class Blog(models.Model):
     category = models.CharField(max_length=30)
     published = models.BooleanField(default=True)
 
+    @property
+    def likes_count(self):
+        return self.likes.count()
+
+    @property
+    def dislikes_count(self):
+        return self.dislikes.count()
 
 
 class Comment(models.Model):
@@ -20,26 +25,31 @@ class Comment(models.Model):
     content = models.CharField(max_length=300)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def likes_count(self):
+        return self.likes.count()
+
+    @property
+    def dislikes_count(self):
+        return self.dislikes.count()
 
 
-class BlogReaction(models.Model):
-    blog = models.ForeignKey(Blog, related_name= "reactions" ,on_delete=models.CASCADE)
+class Like(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    like = models.BooleanField(default=False)
-
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE, null=True, blank=True, related_name="likes")
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True, related_name="likes")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('blog', 'user')
+        unique_together = ('user', 'blog', 'comment')
 
 
-class CommentReaction(models.Model):
-    comment = models.ForeignKey(Comment, related_name='reaction_comments', on_delete=models.CASCADE)
+
+class DisLike(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    like = models.BooleanField()
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE, null=True, blank=True, related_name="dislikes")
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True, related_name="dislikes")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('comment', 'user')
-
-
-
-
+        unique_together = ('user', 'blog', 'comment')

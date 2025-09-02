@@ -3,12 +3,11 @@ from django.contrib.auth.models import User
 from rest_framework import generics, viewsets, filters, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
-from .models import  BlogReaction, CommentReaction
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
-from .models import Blog, Comment
-from .serializer import BlogSerializer, CommentSerializer, UserSerializer, BlogReactionSerializer,CommentReactionSerializer
+from django.shortcuts import get_object_or_404
+from .models import Blog, Comment, Like, DisLike
+from .serializer import BlogSerializer, CommentSerializer, UserSerializer
 from .permissions import IsAuthorOrReadOnly
 
 
@@ -17,7 +16,7 @@ class RegisterUser(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
-class LoginCreated(APIView):
+class LoginViewSet(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
@@ -67,29 +66,79 @@ class CommentListCreatedView(generics.ListCreateAPIView):
         serializer.save(blog_id=blog_id)
 
 
-
-class BlogReactionView(APIView):
+class LikeCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, blog_id):
-        blog = get_object_or_404(Blog, id=blog_id)
-        is_like = request.data.get("is_like", True)
-        reaction, _ = BlogReaction.objects.update_or_create(
-            blog=blog, user=request.user,
-            defaults={"is_like": is_like}
-        )
-        serializer = BlogReactionSerializer(reaction)
-        return Response(serializer.data)
+    def create(self, request, *args, **kwargs):
+        obj_type = self.kwargs.get("obj_type")
+        obj_id = self.kwargs.get("id")
 
-class CommentReactionView(APIView):
+        if obj_type == "blog":
+            blog = get_object_or_404(Blog, id=obj_id)
+
+
+            DisLike.objects.filter(user=request.user, blog=blog).delete()
+
+
+            existing_like = Like.objects.filter(user=request.user, blog=blog)
+            if existing_like.exists():
+                existing_like.delete()
+                return Response({"message": "Removed Like from Blog"})
+
+            like = Like.objects.create(user=request.user, blog=blog)
+            return Response({"message": "Liked Blog", "id": like.id})
+
+        elif obj_type == "comment":
+            comment = get_object_or_404(Comment, id=obj_id)
+
+
+            DisLike.objects.filter(user=request.user, comment=comment).delete()
+
+            #
+            existing_like = Like.objects.filter(user=request.user, comment=comment)
+            if existing_like.exists():
+                existing_like.delete()
+                return Response({"message": "Removed Like from Comment"})
+
+            like = Like.objects.create(user=request.user, comment=comment)
+            return Response({"message": "Liked Comment", "id": like.id})
+
+class DisLikeCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, comment_id):
-        comment = get_object_or_404(Comment, id=comment_id)
-        is_like = request.data.get("is_like", True)
-        reaction, _ = CommentReaction.objects.update_or_create(
-            comment=comment, user=request.user,
-            defaults={"is_like": is_like}
-        )
-        serializer = CommentReactionSerializer(reaction)
-        return Response(serializer.data)
+    def create(self, request, *args, **kwargs):
+        obj_type = self.kwargs.get("obj_type")
+        obj_id = self.kwargs.get("id")
+
+        if obj_type == "blog":
+            blog = get_object_or_404(Blog, id=obj_id)
+
+
+            Like.objects.filter(user=request.user, blog=blog).delete()
+
+
+            existing_dislike = DisLike.objects.filter(user=request.user, blog=blog)
+            if existing_dislike.exists():
+                existing_dislike.delete()
+                return Response({"message": "Removed Dislike from Blog"})
+
+            dislike = DisLike.objects.create(user=request.user, blog=blog)
+            return Response({"message": "Disliked Blog", "id": dislike.id})
+
+        elif obj_type == "comment":
+            comment = get_object_or_404(Comment, id=obj_id)
+
+
+            Like.objects.filter(user=request.user, comment=comment).delete()
+
+
+            existing_dislike = DisLike.objects.filter(user=request.user, comment=comment)
+            if existing_dislike.exists():
+                existing_dislike.delete()
+                return Response({"message": "Removed Dislike from Comment"})
+
+            dislike = DisLike.objects.create(user=request.user, comment=comment)
+            return Response({"message": "Disliked Comment", "id": dislike.id})
+
+
+
