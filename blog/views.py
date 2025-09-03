@@ -1,32 +1,10 @@
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
-from rest_framework import generics, viewsets, filters, permissions, status
+from rest_framework import generics, viewsets, filters, permissions
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from .models import Blog, Comment, Like, DisLike
-from .serializer import BlogSerializer, CommentSerializer, UserSerializer
+from .serializer import BlogSerializer, CommentSerializer
 from .permissions import IsAuthorOrReadOnly
-
-
-class RegisterUser(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
-
-class LoginViewSet(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(username=username, password=password)
-        if user:
-            token, _ = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_200_OK)
-        return Response({'error': 'Invalid username or password'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BlogViewSet(viewsets.ModelViewSet):
@@ -94,7 +72,7 @@ class LikeCreateView(generics.CreateAPIView):
 
             DisLike.objects.filter(user=request.user, comment=comment).delete()
 
-            #
+
             existing_like = Like.objects.filter(user=request.user, comment=comment)
             if existing_like.exists():
                 existing_like.delete()
